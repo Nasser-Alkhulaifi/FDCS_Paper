@@ -26,6 +26,19 @@ feature_selection_methods = {
 }
 
 def evaluate_model(X_train_val, y_train_val, X_test, y_test, output_names):
+    """
+    Evaluates a multi-task learning model using different feature selection methods and time series cross-validation.
+
+    Parameters:
+    X_train_val (numpy.ndarray): Training and validation features.
+    y_train_val (numpy.ndarray): Training and validation targets.
+    X_test (numpy.ndarray): Test features.
+    y_test (numpy.ndarray): Test targets.
+    output_names (list): List of output names corresponding to the tasks.
+
+    Returns:
+    pandas.DataFrame: DataFrame containing true and predicted values for the test set, along with model, output, and feature selection method information.
+    """
     results = []
     tscv = TimeSeriesSplit(n_splits=5)
     num_tasks = len(output_names)

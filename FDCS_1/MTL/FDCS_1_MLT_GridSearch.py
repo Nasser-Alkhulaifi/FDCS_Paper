@@ -44,6 +44,29 @@ class MultiTaskHyperModel(HyperModel):
         return model
 
 def evaluate_model_with_tuner(X_train_normalized, y_train_normalized, X_val_normalized, y_val_normalized, output_names):
+    """
+    Evaluates a multi-task learning model using hyperparameter tuning and cross-validation.
+    Parameters:
+    -----------
+    X_train_normalized : np.ndarray
+        Normalized training input data.
+    y_train_normalized : np.ndarray
+        Normalized training target data.
+    X_val_normalized : np.ndarray
+        Normalized validation input data.
+    y_val_normalized : np.ndarray
+        Normalized validation target data.
+    output_names : list of str
+        List of output names corresponding to the tasks.
+    Returns:
+    --------
+    best_hyperparams_dict : dict
+        Dictionary containing the best hyperparameters found during tuning.
+    metrics_df : pd.DataFrame
+        DataFrame containing evaluation metrics (MAE, RMSE) for each fold and output.
+    pred_true_ValSet : pd.DataFrame
+        DataFrame containing true vs predicted values for the validation set.
+    """
     input_shape = X_train_normalized.shape[1]
     num_tasks = len(output_names)
     hypermodel = MultiTaskHyperModel(input_shape=input_shape, num_tasks=num_tasks)

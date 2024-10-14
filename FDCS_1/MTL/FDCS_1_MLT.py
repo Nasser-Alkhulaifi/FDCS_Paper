@@ -9,6 +9,19 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from tensorflow.keras.callbacks import EarlyStopping
 
 def evaluate_model(X_train_val_normalized, y_train_val_normalized, X_test_normalized, y_test_normalized, output_names):
+    """
+    Evaluates a multi-task learning model using time series cross-validation.
+    Parameters:
+    X_train_val_normalized (numpy.ndarray): Normalized training and validation features.
+    y_train_val_normalized (numpy.ndarray): Normalized training and validation targets.
+    X_test_normalized (numpy.ndarray): Normalized test features.
+    y_test_normalized (numpy.ndarray): Normalized test targets.
+    output_names (list of str): Names of the output tasks.
+    Returns:
+    tuple:
+        - metrics_df (pandas.DataFrame): DataFrame containing evaluation metrics (MAE, RMSE) for each fold and the final test set.
+        - pred_true_TestSet (pandas.DataFrame): DataFrame containing true and predicted values for the test set.
+    """
     tscv = TimeSeriesSplit(n_splits=5)
     num_tasks = len(output_names)
 

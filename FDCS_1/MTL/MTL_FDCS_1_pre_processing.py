@@ -39,6 +39,27 @@ class RollingWindowFeatures(BaseEstimator, TransformerMixin):
 
 # Pipeline for preprocessing data
 def preprocess_data(df):
+    """
+    Preprocesses the input DataFrame by performing the following steps:
+    1. Converts the 'DateTime' column to datetime format and sets it as the index.
+    2. Adds a new column 'Is_Open' indicating whether the business is open based on predefined working hours.
+    3. Splits the data into training, validation, and test sets.
+    4. Applies a pipeline of transformations including datetime features, cyclical features, lag features, and rolling window features.
+    5. Fills NaN values with 0.
+    6. Splits the data into features (X) and target variables (y).
+    7. Normalizes the features and target variables using MinMaxScaler.
+    8. Saves the scalers for the target variables to a joblib file.
+    Args:
+        df (pd.DataFrame): Input DataFrame containing the data to be preprocessed.
+    Returns:
+        tuple: A tuple containing the normalized training, validation, and test sets:
+            - X_train_normalized (np.ndarray): Normalized training features.
+            - y_train_normalized (np.ndarray): Normalized training targets.
+            - X_val_normalized (np.ndarray): Normalized validation features.
+            - y_val_normalized (np.ndarray): Normalized validation targets.
+            - X_test_normalized (np.ndarray): Normalized test features.
+            - y_test_normalized (np.ndarray): Normalized test targets.
+    """
     df['DateTime'] = pd.to_datetime(df['DateTime'], format='%d/%m/%Y %H:%M')
     df.set_index('DateTime', inplace=True)
 
