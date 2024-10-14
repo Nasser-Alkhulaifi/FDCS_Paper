@@ -1,0 +1,9 @@
+feature_engine==1.6.2
+joblib==1.2.0
+kt_legacy==1.0.5
+mlxtend==0.23.1
+numpy==1.23.5
+pandas==2.0.3
+scikit_learn==1.4.1.post1
+tensorflow==2.12.0
+xgboost==2.0.3
