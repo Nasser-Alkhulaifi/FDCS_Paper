@@ -4,7 +4,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit, train_test_split
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression, RFE, SelectFromModel
 from sklearn.linear_model import Lasso, LinearRegression, ElasticNet
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
@@ -13,35 +13,26 @@ import time
 
 look_back = 24
 
+# Function to create time series datasets for LSTM input
 def create_dataset(X, Y, look_back=look_back):
     Xs, ys = [], []
     for i in range(len(X) - look_back):
-        v = X[i:(i + look_back)]
-        Xs.append(v)
+        Xs.append(X[i:(i + look_back)])
         ys.append(Y[i + look_back])
     return np.array(Xs), np.array(ys)
 
+# Function to train and evaluate LSTM model with feature selection
 def run_lstm_model(X_train_val, y_train_val, X_test, y_test, output_names):
     """
     Trains and evaluates an LSTM model with various feature selection methods on the provided dataset.
     Parameters:
-    X_train_val (pd.DataFrame or np.ndarray): Training and validation features.
-    y_train_val (pd.DataFrame or np.ndarray): Training and validation target values.
-    X_test (pd.DataFrame or np.ndarray): Test features.
-    y_test (pd.DataFrame or np.ndarray): Test target values.
-    output_names (list): List of output names for the model predictions.
+        X_train_val (pd.DataFrame or np.ndarray): Training and validation features.
+        y_train_val (pd.DataFrame or np.ndarray): Training and validation target values.
+        X_test (pd.DataFrame or np.ndarray): Test features.
+        y_test (pd.DataFrame or np.ndarray): Test target values.
+        output_names (list): List of output names for the model predictions.
     Returns:
-    pd.DataFrame: DataFrame containing the true and predicted values for the test set for each feature selection method.
-    The function performs the following steps:
-    1. Defines various feature selection methods.
-    2. Iterates over each feature selection method, applies it to the training and test data.
-    3. Reshapes the data for LSTM input.
-    4. Defines and compiles an LSTM model.
-    5. Uses TimeSeriesSplit for cross-validation.
-    6. Trains the model on each fold and evaluates it on the validation set.
-    7. Predicts the target values on the test set.
-    8. Collects the true and predicted values for each feature selection method.
-    9. Returns a DataFrame with the results.
+        pd.DataFrame: DataFrame containing the true and predicted values for the test set for each feature selection method.
     """
     start_time = time.time()
 
@@ -60,17 +51,20 @@ def run_lstm_model(X_train_val, y_train_val, X_test, y_test, output_names):
 
     pred_true_TestSet = pd.DataFrame()
 
+    # Iterate through each feature selection method
     for name, method in feature_selection_methods.items():
-        if method is not None:
+        if method:
             X_train_val_selected = method.fit_transform(X_train_val, y_train_val)
             X_test_selected = method.transform(X_test)
         else:
             X_train_val_selected = X_train_val
             X_test_selected = X_test
 
-        X_train_val_reshaped, y_train_val_reshaped = create_dataset(X_train_val_selected, y_train_val, look_back=look_back)
-        X_test_reshaped, y_test_reshaped = create_dataset(X_test_selected, y_test, look_back=look_back)
+        # Reshape data for LSTM
+        X_train_val_reshaped, y_train_val_reshaped = create_dataset(X_train_val_selected, y_train_val)
+        X_test_reshaped, y_test_reshaped = create_dataset(X_test_selected, y_test)
 
+        # Define LSTM model
         model = Sequential()
         model.add(LSTM(units=20, input_shape=(look_back, X_train_val_reshaped.shape[2]), return_sequences=True))
         model.add(LSTM(units=10, return_sequences=False))
@@ -78,10 +72,10 @@ def run_lstm_model(X_train_val, y_train_val, X_test, y_test, output_names):
         model.compile(optimizer=Adam(learning_rate=0.01), loss='mean_squared_error')
 
         early_stopping = EarlyStopping(monitor='val_loss', patience=50, verbose=1)
-        
         tscv = TimeSeriesSplit(n_splits=5)
-        
-        for i, output_name in enumerate(output_names): 
+
+        # Train and validate the model using cross-validation
+        for output_name in output_names:
             model_predictions = {'Model': [], 'True': [], 'Pred': []}
             for fold, (train_index, val_index) in enumerate(tscv.split(X_train_val_reshaped)):
                 X_train_fold, X_val_fold = X_train_val_reshaped[train_index], X_train_val_reshaped[val_index]
@@ -89,12 +83,13 @@ def run_lstm_model(X_train_val, y_train_val, X_test, y_test, output_names):
 
                 model.fit(X_train_fold, y_train_fold, epochs=100, batch_size=32, validation_data=(X_val_fold, y_val_fold), callbacks=[early_stopping])
 
+            # Test set evaluation
             test_predictions = model.predict(X_test_reshaped)
             model_predictions['Model'] = [f"LSTM + {name}"] * len(test_predictions)
-            model_predictions['True'] = list(y_test_reshaped.flatten())
-            model_predictions['Pred'] = list(test_predictions.flatten())  
-            temp_df = pd.DataFrame(model_predictions)
-            pred_true_TestSet = pd.concat([pred_true_TestSet, temp_df], ignore_index=True)
+            model_predictions['True'] = y_test_reshaped.flatten().tolist()
+            model_predictions['Pred'] = test_predictions.flatten().tolist()
+
+            pred_true_TestSet = pd.concat([pred_true_TestSet, pd.DataFrame(model_predictions)], ignore_index=True)
 
     execution_time = time.time() - start_time
     print(f"Execution time: {execution_time:.2f} seconds")
