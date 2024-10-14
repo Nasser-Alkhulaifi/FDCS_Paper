@@ -11,11 +11,7 @@ from sklearn.linear_model import Lasso, LinearRegression, ElasticNet
 from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 
 def feature_selection(X, y, method):
-    # Apply feature selection
-    if method is None:
-        return X
-    else:
-        return method.fit_transform(X, y)
+    return X if method is None else method.fit_transform(X, y)
 
 def run_model(X_train_val, y_train_val, X_test, y_test, output_names):
     start_time = time.time()
@@ -33,18 +29,18 @@ def run_model(X_train_val, y_train_val, X_test, y_test, output_names):
         "Hybrid - Filter (SelectKBest) + Embedded (RF)": SelectFromModel(RandomForestRegressor(n_estimators=300))
     }
 
+    # Model parameters
     knn_params = {'leaf_size': 10, 'n_neighbors': 20, 'weights': 'distance'}
     rf_params = {'max_depth': 10, 'min_samples_leaf': 10, 'min_samples_split': 2, 'n_estimators': 500}
     mlp_params = {'activation': 'relu', 'alpha': 0.001, 'batch_size': 32,
-                  'hidden_layer_sizes': (50, 100), 'learning_rate_init': 0.001,
-                  'max_iter': 500, 'solver': 'sgd'}
-    xgb_params = {'learning_rate': 0.01, 'max_depth': 20, 'min_child_weight': 10,
-                  'n_estimators': 500, 'subsample': 0.8}                  
+                  'hidden_layer_sizes': (50, 100), 'learning_rate_init': 0.001, 'max_iter': 500, 'solver': 'sgd'}
+    xgb_params = {'learning_rate': 0.01, 'max_depth': 20, 'min_child_weight': 10, 'n_estimators': 500, 'subsample': 0.8}
 
+    # TimeSeriesSplit for cross-validation
     tscv = TimeSeriesSplit(n_splits=5)
-
     pred_true_TestSet = pd.DataFrame()
 
+    # Define models
     models = {
         'KNeighborsRegressor': KNeighborsRegressor(**knn_params),
         'RandomForestRegressor': RandomForestRegressor(**rf_params),
@@ -52,6 +48,7 @@ def run_model(X_train_val, y_train_val, X_test, y_test, output_names):
         'XGBRegressor': XGBRegressor(**xgb_params)
     }
 
+    # Loop through feature selection methods
     for fs_method_name, fs_method in feature_selection_methods.items():
         print(f"Applying FS method: {fs_method_name}")
         print(f"Number of features before FS: {X_train_val.shape[1]}")
@@ -59,34 +56,30 @@ def run_model(X_train_val, y_train_val, X_test, y_test, output_names):
         X_train_val_fs = feature_selection(X_train_val, y_train_val, fs_method)
         X_test_fs = X_test if fs_method is None else fs_method.transform(X_test)
 
+        # Loop through models
         for model_name, model in models.items():
             for i, output_name in enumerate(output_names):
-                model_predictions = {'Model': []}
-                for column in ['True', 'Pred']:
-                    model_predictions[f'{column}_{output_name}'] = []
+                model_predictions = {'Model': [], f'True_{output_name}': [], f'Pred_{output_name}': []}
 
+                # Cross-validation
                 for fold, (train_index, val_index) in enumerate(tscv.split(X_train_val_fs)):
                     X_train_fold, X_val_fold = X_train_val_fs[train_index], X_train_val_fs[val_index]
                     y_train_fold, y_val_fold = y_train_val[train_index, i], y_train_val[val_index, i]
-                    print("Number of features selected:", X_train_val_fs.shape[1])
-
 
                     model.fit(X_train_fold, y_train_fold)
 
+                # Train on full training set and predict
                 model.fit(X_train_val_fs, y_train_val[:, i])
                 test_predictions = model.predict(X_test_fs)
 
-                assert len(test_predictions) == len(y_test[:, i]), "Length of predictions and true values does not match."
-
+                # Store predictions
                 model_predictions['Model'] += [f"{model_name} ({fs_method_name})"] * len(test_predictions)
                 model_predictions[f'True_{output_name}'] += list(y_test[:, i])
                 model_predictions[f'Pred_{output_name}'] += list(test_predictions)
 
-                if pred_true_TestSet.empty:
-                    pred_true_TestSet = pd.DataFrame(model_predictions)
-                else:
-                    temp_df = pd.DataFrame(model_predictions)
-                    pred_true_TestSet = pd.concat([pred_true_TestSet, temp_df])
+                # Append results to DataFrame
+                temp_df = pd.DataFrame(model_predictions)
+                pred_true_TestSet = pd.concat([pred_true_TestSet, temp_df], ignore_index=True)
 
     execution_time = time.time() - start_time
     print(f"Execution time: {execution_time:.2f} seconds")
