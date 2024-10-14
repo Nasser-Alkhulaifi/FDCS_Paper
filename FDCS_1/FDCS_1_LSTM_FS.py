@@ -22,6 +22,27 @@ def create_dataset(X, Y, look_back=look_back):
     return np.array(Xs), np.array(ys)
 
 def run_lstm_model(X_train_val, y_train_val, X_test, y_test, output_names):
+    """
+    Trains and evaluates an LSTM model with various feature selection methods on the provided dataset.
+    Parameters:
+    X_train_val (pd.DataFrame or np.ndarray): Training and validation features.
+    y_train_val (pd.DataFrame or np.ndarray): Training and validation target values.
+    X_test (pd.DataFrame or np.ndarray): Test features.
+    y_test (pd.DataFrame or np.ndarray): Test target values.
+    output_names (list): List of output names for the model predictions.
+    Returns:
+    pd.DataFrame: DataFrame containing the true and predicted values for the test set for each feature selection method.
+    The function performs the following steps:
+    1. Defines various feature selection methods.
+    2. Iterates over each feature selection method, applies it to the training and test data.
+    3. Reshapes the data for LSTM input.
+    4. Defines and compiles an LSTM model.
+    5. Uses TimeSeriesSplit for cross-validation.
+    6. Trains the model on each fold and evaluates it on the validation set.
+    7. Predicts the target values on the test set.
+    8. Collects the true and predicted values for each feature selection method.
+    9. Returns a DataFrame with the results.
+    """
     start_time = time.time()
 
     # Define feature selection methods
