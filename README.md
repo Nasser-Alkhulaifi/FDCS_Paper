@@ -2,13 +2,22 @@
 
 ## Overview
 
-This repository contains the code implementation for the paper **"Machine Learning Pipeline for Energy and Environmental Prediction in Cold Storage Facilities"**, submitted to *IEEE Access*. The project focuses on predicting energy consumption and environmental factors (e.g., temperature, humidity) in cold storage facilities using a machine learning pipeline. The goal is to optimise energy usage while maintaining appropriate environmental conditions.
+This repository contains the official implementation of the paper:
 
-**Note:** The dataset used in the paper is proprietary and cannot be shared publicly. You may apply the proposed pipeline to your data using the provided code.
+**"Machine Learning Pipeline for Energy and Environmental Prediction in Cold Storage Facilities"**  
+Nasser Alkhulaifi, Alexander L. Bowler, Direnc Pekaslan, Gulcan Serdaroglu, Steve Closs, Nicholas J. Watson, and Isaac Triguero  
+Published in *IEEE Access*, 2024, Volume 12, pp. 153935–153951  
+[IEEE Xplore Link](https://ieeexplore.ieee.org/abstract/document/10720783)  
+DOI: [10.1109/ACCESS.2024.3482572](https://doi.org/10.1109/ACCESS.2024.3482572)
 
-## Contact Information
+This project presents a machine learning pipeline designed to forecast energy consumption and environmental variables (e.g., temperature, humidity) in food and drink cold storage rooms. The pipeline integrates data preprocessing, automated feature engineering, and predictive modelling to support sustainable energy management.
 
-For questions or issues regarding the code, please contact:
+The work contributes to improving operational efficiency and environmental monitoring in cold storage facilities.
 
-- **Nasser Alkhulaifi**  
-  [Nasser.alkhulaifi@nottingham.ac.uk](mailto:Nasser.alkhulaifi@nottingham.ac.uk)
+> **Note:** The dataset used in the paper is proprietary and cannot be shared publicly. You may adapt the provided code to your own datasets.
+
+## Requirements
+
+See `requirements.txt` for Python dependencies.
+
+
