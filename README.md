@@ -24,7 +24,7 @@ The work contributes to improving operational efficiency and environmental monit
 If you use this code or build upon this work, please cite the following publication:
 
 ```bibtex
-@ARTICLE{10720783,
+@ARTICLE{Alkhulaifi2024,
   author={Alkhulaifi, Nasser and Bowler, Alexander L. and Pekaslan, Direnc and Serdaroglu, Gulcan and Closs, Steve and Watson, Nicholas J. and Triguero, Isaac},
   journal={IEEE Access}, 
   title={Machine Learning Pipeline for Energy and Environmental Prediction in Cold Storage Facilities}, 
